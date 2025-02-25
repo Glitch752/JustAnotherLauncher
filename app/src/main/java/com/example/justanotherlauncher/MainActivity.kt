@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -51,39 +52,49 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             // Text(text = "App names: $appNames", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(20.dp))
-            AppGridLayout(this.packageManager, appList)
+            AppGridLayout(this.packageManager, appList, ::startActivity)
         }
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun AppGridLayout(packageManager: PackageManager, apps: List<ResolveInfo>) {
+fun AppGridLayout(packageManager: PackageManager, apps: List<ResolveInfo>, startActivity: (Intent) -> Unit) {
     FlowRow(modifier = Modifier.padding(12.dp)) {
         apps.sortedWith(compareBy { app ->
             app.loadLabel(packageManager).toString()
         }).forEach { app ->
-            AppIcon(app, packageManager)
+            AppIcon(app, packageManager, startActivity)
         }
     }
 }
 
 @Composable
-fun AppIcon(app: ResolveInfo, packageManager: PackageManager) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(80.dp).padding(4.dp)
+fun AppIcon(app: ResolveInfo, packageManager: PackageManager, startActivity: (Intent) -> Unit) {
+    Button(
+        onClick = {
+            val intent = Intent().apply {
+                setClassName(app.activityInfo.packageName, app.activityInfo.name)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+        }
     ) {
-        Image(painter = DrawablePainter(app.loadIcon(packageManager)), contentDescription = "", modifier = Modifier.padding(6.dp).fillMaxWidth().aspectRatio(1f))
-        Text(
-            text = app.loadLabel(packageManager).toString(),
-            modifier = Modifier.padding(0.dp, 2.dp, 0.dp, 0.dp).fillMaxWidth(),
-            overflow = TextOverflow.Ellipsis,
-            color = Color.White,
-            fontSize = 11.sp,
-            softWrap = false,
-            textAlign = TextAlign.Center,
-            maxLines = 1
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.width(80.dp).padding(4.dp)
+        ) {
+            Image(painter = DrawablePainter(app.loadIcon(packageManager)), contentDescription = "", modifier = Modifier.padding(6.dp).fillMaxWidth().aspectRatio(1f))
+            Text(
+                text = app.loadLabel(packageManager).toString(),
+                modifier = Modifier.padding(0.dp, 2.dp, 0.dp, 0.dp).fillMaxWidth(),
+                overflow = TextOverflow.Ellipsis,
+                color = Color.White,
+                fontSize = 11.sp,
+                softWrap = false,
+                textAlign = TextAlign.Center,
+                maxLines = 1
+            )
+        }
     }
 }
