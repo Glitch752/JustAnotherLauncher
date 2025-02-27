@@ -1,5 +1,6 @@
 package com.example.justanotherlauncher
 
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
@@ -33,7 +34,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 import com.google.accompanist.drawablepainter.DrawablePainter
+
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+
+val Context.settingsDatastore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+
+const val Home = "home"
+const val Settings = "settings"
 
 class MainActivity : ComponentActivity() {
     private lateinit var appList: List<ResolveInfo>
@@ -56,8 +70,40 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            // Text(text = "App names: $appNames", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(20.dp))
-            AppGridLayout(this.packageManager, appList, ::startActivity)
+            val navController = rememberNavController()
+
+            NavHost(navController = navController, startDestination = Home) {
+                // Home screen
+                composable(Home) {
+                    Column {
+                        Button(
+                            onClick = { navController.navigate(Settings) },
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(text = "Settings", color = Color.Blue)
+                        }
+                        AppGridLayout(this@MainActivity.packageManager, appList, ::startActivity)
+                    }
+                }
+
+                // Settings screen
+                composable(Settings) {
+                    // Placeholder for settings screen
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Button(
+                            onClick = { navController.navigate(Home) },
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(text = "Back to Home", color = Color.Blue)
+                        }
+                        Text(text = "Settings", fontSize = 24.sp, color = Color.White)
+                    }
+                }
+            }
         }
     }
 }
